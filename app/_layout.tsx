@@ -5,35 +5,36 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { Tabs } from 'expo-router';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
+export default function Layout() {
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
+    // Hide splash screen once the app is ready
+    SplashScreen.hideAsync();
+  }, []);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Tabs>
+      {/* Upload Screen Tab */} 
+      <Tabs.Screen
+        name="upload"  // Ensure you have a corresponding upload.tsx file
+        options={{
+          title: 'Upload', // Label in the tab bar
+        }}
+      />
+      
+      {/* Ask Screen Tab */}
+      <Tabs.Screen
+        name="ask" // Ensure you have a corresponding ask.tsx file
+        options={{
+          title: 'Ask', // Label in the tab bar
+        }}
+      />
+    </Tabs>
   );
-}
+}   
