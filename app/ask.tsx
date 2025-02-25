@@ -3,10 +3,11 @@ import { TextInput, Button, View, StyleSheet, FlatList, Text } from 'react-nativ
 import { OpenAI } from 'openai';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import secrets from '../secrets.json';
 
 // Initialize OpenAI
 const openai = new OpenAI({
-  apiKey: 'your-openai-api-key', // Ensure you replace with your actual key
+  apiKey: secrets.OPENAI_API_KEY,
 });
 
 const AskScreen = ({ fileContent }: any) => {
