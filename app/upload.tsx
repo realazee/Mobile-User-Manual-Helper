@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Image, StyleSheet, Platform, Button, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import { useRouter } from 'expo-router';
+import * as FileSystem from 'expo-file-system';
+import PDFLib from 'react-native-pdf-lib';
 
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
@@ -8,12 +11,36 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [file, setFile] = useState<DocumentPicker.DocumentPickerResult | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const pickDocument = async () => {
-    let result = await DocumentPicker.getDocumentAsync({});
+    let result = await DocumentPicker.getDocumentAsync({
+      type: 'text/plain'
+    });
+    
     if (result.canceled === false) {
       setFile(result);
+      setIsProcessing(true);
+      
+      try {
+        // Get the local file path
+        const filePath = result.assets[0].uri;
+        
+        // Read the text file content
+        const fileContent = await FileSystem.readAsStringAsync(filePath);
+        
+        // Navigate to ask screen with the text content
+        router.push({
+          pathname: "/ask",
+          params: { fileContent: fileContent }
+        });
+      } catch (error) {
+        console.error('Error processing file:', error);
+      } finally {
+        setIsProcessing(false);
+      }
     }
   };
 
@@ -34,7 +61,11 @@ export default function HomeScreen() {
 
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Pick a Document!</ThemedText>
-        <Button title="Pick a Document" onPress={pickDocument} />
+        <Button 
+          title={isProcessing ? "Processing..." : "Pick a Document"} 
+          onPress={pickDocument}
+          disabled={isProcessing}
+        />
         {file && !file.canceled && (
           <ThemedText style={styles.selectedFileText}>
             Selected File: {file.assets[0].name}

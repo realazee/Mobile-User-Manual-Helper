@@ -4,13 +4,15 @@ import { OpenAI } from 'openai';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import secrets from '../secrets.json';
+import { useLocalSearchParams } from 'expo-router';
 
 // Initialize OpenAI
 const openai = new OpenAI({
   apiKey: secrets.OPENAI_API_KEY,
 });
 
-const AskScreen = ({ fileContent }: any) => {
+const AskScreen = () => {
+  const { fileContent } = useLocalSearchParams();
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +21,6 @@ const AskScreen = ({ fileContent }: any) => {
   const askQuestion = async () => {
     if (!question.trim()) return;
 
-    // Add user's question to messages first
     const newMessage = { sender: 'user' as const, text: question };
     setMessages(prevMessages => [...prevMessages, newMessage]);
 
@@ -29,24 +30,24 @@ const AskScreen = ({ fileContent }: any) => {
       const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [
-          { role: 'system', content: 'You are a helpful assistant.' },
-          { role: 'user', content: question },
-          { role: 'user', content: `Here is some file content: ${fileContent}` },
+          { role: 'system', content: 'You are a helpful assistant. You will help analyze the document content provided.' },
+          { role: 'user', content: `Here is the document content: ${fileContent}` },
+          { role: 'user', content: question }
         ],
       });
 
-      // Wait for the AI's response to finish before updating the messages state
       const aiMessage = { sender: 'ai' as const, text: response.choices[0]?.message?.content || 'No response received.' };
       setMessages(prevMessages => [...prevMessages, aiMessage]);
     } catch (error) {
+      console.error('Error:', error);
       setMessages(prevMessages => [
         ...prevMessages,
-        { sender: 'ai' as const, text: 'Sorry, there was an error fetching the answer.' }
+        { sender: 'ai' as const, text: 'Sorry, there was an error processing your request.' }
       ]);
     }
 
     setIsLoading(false);
-    setQuestion(''); // Clear the input field
+    setQuestion('');
   };
 
   return (
